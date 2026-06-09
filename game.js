@@ -754,6 +754,16 @@ function showDamageFeedItem(label, damage, sources = []) {
   item.innerHTML = `<strong>${label}</strong><b>-${damage}</b>${tags ? `<span>${tags}</span>` : ""}`;
   damageFeedEl.prepend(item);
   while (damageFeedEl.children.length > 4) damageFeedEl.lastElementChild.remove();
+  window.setTimeout(() => {
+    item.classList.add("fade");
+    window.setTimeout(() => {
+      item.remove();
+      if (damageFeedEl.children.length === 0) {
+        damageFeedEl.classList.remove("show");
+        damageFeedEl.setAttribute("aria-hidden", "true");
+      }
+    }, 260);
+  }, label === "TOTAL" ? 1500 : 1150);
 }
 
 function showTotalDamage(damage) {

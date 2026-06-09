@@ -665,6 +665,12 @@ p {
   animation: damageFeedIn .34s ease-out;
 }
 
+.damage-feed-item.fade {
+  opacity: 0;
+  transform: translateX(14px) scale(.96);
+  transition: opacity .24s ease, transform .24s ease;
+}
+
 .damage-feed-item strong {
   overflow: hidden;
   font-size: 10px;
