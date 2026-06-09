@@ -136,6 +136,7 @@ let runEnded = false;
 let turnDamageTotal = 0;
 let turnDamageSources = [];
 let damageBreakdownTimer = null;
+let turnDamageHideTimer = null;
 let audioStarted = false;
 let audioCtx = null;
 let musicTimer = null;
@@ -734,6 +735,7 @@ function getDamageSourceLabels(context) {
 }
 
 function resetTurnDamage() {
+  clearTurnDamageHideTimer();
   turnDamageTotal = 0;
   turnDamageSources = [];
   turnDamageValueEl.textContent = "0";
@@ -746,6 +748,7 @@ function resetTurnDamage() {
 
 function addTurnDamage(damage, sources = [], label = "命中") {
   if (damage <= 0) return;
+  clearTurnDamageHideTimer();
   turnDamageTotal += damage;
   for (const source of sources) {
     if (!turnDamageSources.includes(source)) turnDamageSources.push(source);
@@ -770,7 +773,23 @@ function showTurnDamageSummary(damage) {
   turnDamageEl.classList.add("resolved");
   turnDamageDetailEl.textContent = `結算完成，準備攻擊 -${damage}`;
   window.setTimeout(() => turnDamageEl.classList.remove("resolved"), 520);
+  scheduleTurnDamageHide(1650);
   setDamageBreakdownTimeout(1450);
+}
+
+function clearTurnDamageHideTimer() {
+  if (!turnDamageHideTimer) return;
+  window.clearTimeout(turnDamageHideTimer);
+  turnDamageHideTimer = null;
+}
+
+function scheduleTurnDamageHide(duration) {
+  clearTurnDamageHideTimer();
+  turnDamageHideTimer = window.setTimeout(() => {
+    turnDamageEl.classList.remove("active", "resolved");
+    turnDamageEl.setAttribute("aria-hidden", "true");
+    turnDamageHideTimer = null;
+  }, duration);
 }
 
 function setDamageBreakdownTimeout(duration) {
