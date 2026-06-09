@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hero Crush</title>
-  <link rel="stylesheet" href="style.css?v=combat-ui-1">
+  <link rel="stylesheet" href="style.css?v=damage-feed-1">
 </head>
 <body>
   <main class="game-shell">
@@ -31,6 +31,7 @@
         <img class="battle-hero" src="assets/hero-full.svg" alt="" aria-hidden="true">
         <div class="monster-stage">
           <div id="damage-pop" class="damage-pop"></div>
+          <div id="damage-feed" class="damage-feed" aria-hidden="true"></div>
           <div id="damage-breakdown" class="damage-breakdown" aria-hidden="true"></div>
           <div id="slash-effect" class="slash-effect" aria-hidden="true"></div>
           <img id="monster" class="sprite monster" src="assets/monster-slime.svg" alt="" aria-hidden="true">
@@ -83,6 +84,7 @@
     <div class="choice-card bet-card">
       <div class="choice-title">選擇 Bet</div>
       <p id="bet-copy">每次消除會消耗 1 Bet，通關獎勵會依 Bet 倍數計算。</p>
+      <div class="bet-bank">目前資產 <strong id="bet-bank">1000$</strong></div>
       <div class="bet-stepper" aria-label="Bet 調整">
         <button id="bet-minus" type="button" aria-label="降低 Bet" onclick="decreaseBet()">-</button>
         <div class="bet-value">
@@ -120,6 +122,6 @@
     <span>選擇 Cash Out 或繼續挑戰</span>
   </div>
 
-  <script src="game.js?v=combat-ui-1"></script>
+  <script src="game.js?v=damage-feed-1"></script>
 </body>
 </html>

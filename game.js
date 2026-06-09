@@ -79,6 +79,7 @@ const monsterEl = document.getElementById("monster");
 const battleHeroEl = document.querySelector(".battle-hero");
 const monsterNameEl = document.getElementById("monster-name");
 const damagePopEl = document.getElementById("damage-pop");
+const damageFeedEl = document.getElementById("damage-feed");
 const damageBreakdownEl = document.getElementById("damage-breakdown");
 const newRoundBtn = document.getElementById("new-round");
 const stageProgressEl = document.getElementById("stage-progress");
@@ -97,6 +98,7 @@ const betMinusBtn = document.getElementById("bet-minus");
 const betPlusBtn = document.getElementById("bet-plus");
 const betAmountEl = document.getElementById("bet-amount");
 const betStepCostEl = document.getElementById("bet-step-cost");
+const betBankEl = document.getElementById("bet-bank");
 const betFirstRewardEl = document.getElementById("bet-first-reward");
 const betTotalRewardEl = document.getElementById("bet-total-reward");
 const betStartBtn = document.getElementById("bet-start");
@@ -289,6 +291,7 @@ async function tryMove(a, b) {
 
   coins = Math.max(0, coins - currentBet);
   movesAgainstMonster++;
+  resetDamageFeed();
   render();
   await sleep(120);
 
@@ -307,7 +310,7 @@ async function tryMove(a, b) {
     await sleep(180);
   }
   totalDamage += await resolveBoard(a);
-  const defeated = await hitMonster(totalDamage);
+  const defeated = await finalizeMonsterDamage(totalDamage);
   if (!defeated && !runEnded) await processMonsterCooldown();
   busy = false;
   render();
@@ -649,12 +652,14 @@ async function clearCells(cells, chain, label) {
   if (bonusCoins > 0) coins += bonusCoins;
   render(new Set(unique.keys()));
   showDamageBreakdown(sources.length ? sources : ["Base Damage"]);
+  await playAttackImpact(damage);
+  await applyDamageSegment(damage, label, sources);
   const sourceText = sources.length ? ` 來源：${sources.join("、")}` : "";
   const heartText = heartsCleared ? `，心能量 +${heartsCleared}` : "";
   const healText = heartHeal ? `，回復 ${heartHeal} HP` : "";
   logEl.textContent = `${label}！消除 ${finalCells.length} 格，造成 ${damage} 傷害${heartText}${healText}${bonusCoins ? `，賞金 +${bonusCoins}` : ""}。${sourceText}`;
   playImpactCallout(chain, damage);
-  await sleep(260);
+  await sleep(120);
   for (const cell of finalCells) board[cell.r][cell.c] = null;
   return damage;
 }
@@ -732,6 +737,31 @@ function showDamageBreakdown(labels) {
     damageBreakdownEl.classList.remove("show");
     damageBreakdownEl.setAttribute("aria-hidden", "true");
   }, 1300);
+}
+
+function resetDamageFeed() {
+  damageFeedEl.innerHTML = "";
+  damageFeedEl.classList.remove("show");
+  damageFeedEl.setAttribute("aria-hidden", "true");
+}
+
+function showDamageFeedItem(label, damage, sources = []) {
+  damageFeedEl.classList.add("show");
+  damageFeedEl.setAttribute("aria-hidden", "false");
+  const item = document.createElement("div");
+  item.className = "damage-feed-item";
+  const tags = sources.slice(0, 3).map(source => `<small>${source}</small>`).join("");
+  item.innerHTML = `<strong>${label}</strong><b>-${damage}</b>${tags ? `<span>${tags}</span>` : ""}`;
+  damageFeedEl.prepend(item);
+  while (damageFeedEl.children.length > 4) damageFeedEl.lastElementChild.remove();
+}
+
+function showTotalDamage(damage) {
+  damagePopEl.textContent = `TOTAL -${damage}`;
+  damagePopEl.classList.remove("show", "total");
+  void damagePopEl.offsetWidth;
+  damagePopEl.classList.add("show", "total");
+  showDamageFeedItem("TOTAL", damage, []);
 }
 
 function showComboBurst(chain) {
@@ -854,17 +884,10 @@ function range(start, end) {
   return Array.from({ length: end - start }, (_, index) => start + index);
 }
 
-async function hitMonster(damage) {
+async function finalizeMonsterDamage(damage) {
   if (damage <= 0) return;
-  await playAttackImpact(damage);
-  monsterHp -= damage;
-  damagePopEl.textContent = `-${damage}`;
-  damagePopEl.classList.remove("show");
-  void damagePopEl.offsetWidth;
-  damagePopEl.classList.add("show");
-  monsterEl.classList.add("hit");
-  setTimeout(() => monsterEl.classList.remove("hit"), 180);
-
+  showTotalDamage(damage);
+  await sleep(220);
   if (monsterHp <= 0) {
     await advanceStage();
     updateHud();
@@ -872,6 +895,20 @@ async function hitMonster(damage) {
   }
   updateHud();
   return false;
+}
+
+async function applyDamageSegment(damage, label, sources) {
+  if (damage <= 0) return;
+  monsterHp -= damage;
+  damagePopEl.textContent = `${label} -${damage}`;
+  damagePopEl.classList.remove("show");
+  void damagePopEl.offsetWidth;
+  damagePopEl.classList.add("show");
+  showDamageFeedItem(label, damage, sources);
+  monsterEl.classList.add("hit");
+  setTimeout(() => monsterEl.classList.remove("hit"), 180);
+  updateHud();
+  await sleep(180);
 }
 
 async function playAttackImpact(damage) {
@@ -961,6 +998,7 @@ function updateBetPicker() {
   currentBet = Math.max(MIN_BET, Math.min(MAX_BET, Math.round(currentBet / BET_STEP) * BET_STEP));
   betAmountEl.textContent = currentBet;
   betStepCostEl.textContent = currentBet;
+  betBankEl.textContent = `${coins}$`;
   betFirstRewardEl.textContent = `${currentBet * STAGES[0].multiplier * REWARD_MULTIPLIER}$`;
   betTotalRewardEl.textContent = `${totalRunRewardForBet(currentBet)}$`;
   betMinusBtn.disabled = currentBet <= MIN_BET;
