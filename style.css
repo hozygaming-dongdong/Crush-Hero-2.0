@@ -937,34 +937,27 @@ p {
 
 .turn-damage {
   position: absolute;
-  left: 10px;
-  bottom: 10px;
+  left: 12px;
+  bottom: 12px;
   z-index: 18;
   display: grid;
-  gap: 5px;
-  width: min(178px, 44%);
-  min-height: 74px;
-  padding: 8px 9px;
-  border: 2px solid rgba(255, 216, 112, .78);
-  border-radius: 9px;
-  background:
-    radial-gradient(circle at 0 0, rgba(255, 232, 132, .22), transparent 42%),
-    linear-gradient(145deg, rgba(43, 29, 16, .94), rgba(14, 12, 16, .92));
+  gap: 3px;
+  width: min(190px, 48%);
   color: #ffd66b;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-8px, 8px) scale(.96);
-  box-shadow: 0 12px 28px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255, 242, 180, .16);
-  transition: opacity .18s ease, transform .18s ease, border-color .18s ease, filter .18s ease;
+  transform: translate(-6px, 8px);
+  filter: drop-shadow(0 3px 0 rgba(68, 22, 10, .9)) drop-shadow(0 0 10px rgba(255, 196, 70, .32));
+  transition: opacity .18s ease, transform .18s ease, filter .18s ease;
 }
 
 .turn-damage.active {
   opacity: 1;
-  transform: translate(0, 0) scale(1);
+  transform: translate(0, 0);
 }
 
 .turn-damage.resolved {
-  border-color: #fff29a;
+  filter: drop-shadow(0 3px 0 rgba(68, 22, 10, .95)) drop-shadow(0 0 16px rgba(255, 229, 104, .72));
   animation: turnDamageResolve .52s ease-out;
 }
 
@@ -977,29 +970,36 @@ p {
 }
 
 .turn-damage-head span {
-  color: #d8bd86;
+  color: #fff0b0;
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
+  text-shadow: 0 2px 0 #49180b, 0 0 8px rgba(255, 214, 91, .45);
   white-space: nowrap;
 }
 
 .turn-damage-head strong {
   margin: 0;
   color: #fff2a4;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 1000;
   line-height: .9;
-  text-shadow: 0 2px 0 #7d2815, 0 0 12px rgba(255, 214, 91, .58);
+  text-shadow:
+    0 3px 0 #7d2815,
+    2px 0 0 #3a1308,
+    -2px 0 0 #3a1308,
+    0 -2px 0 #3a1308,
+    0 0 14px rgba(255, 214, 91, .68);
   white-space: nowrap;
 }
 
 .turn-damage-detail {
   overflow: hidden;
   color: #fff0bf;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   line-height: 1.2;
+  text-shadow: 0 2px 0 #49180b, 0 0 8px rgba(0, 0, 0, .7);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1013,14 +1013,16 @@ p {
 }
 
 .turn-damage-tags span {
-  padding: 2px 5px;
-  border: 1px solid rgba(255, 228, 147, .42);
-  border-radius: 999px;
-  background: rgba(255, 170, 55, .16);
   color: #ffd98b;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
   line-height: 1.1;
+  text-shadow: 0 2px 0 #49180b, 0 0 7px rgba(0, 0, 0, .72);
+}
+
+.turn-damage-tags span:not(:last-child)::after {
+  content: " /";
+  color: rgba(255, 230, 166, .68);
 }
 
 .reward-chip {
