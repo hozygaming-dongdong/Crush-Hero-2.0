@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hero Crush</title>
+  <link rel="stylesheet" href="style.css?v=combat-ui-1">
+</head>
+<body>
+  <main class="game-shell">
+    <section class="topbar" aria-label="遊戲狀態">
+      <div class="game-title">Hero Crush</div>
+      <div class="quick-status" aria-label="資產與投注">
+        <span>金幣 <strong id="coins">1000</strong></span>
+        <span id="bet-status">Bet 10 / 每步 -10</span>
+      </div>
+      <button id="new-round" type="button" aria-label="重開">重開</button>
+      <div class="run-status">
+        <div id="stage-progress" class="stage-progress" aria-label="關卡進度"></div>
+        <div id="stage-reward" class="stage-reward">過關總獎勵<strong>40$</strong></div>
+        <div id="boss-hint" class="boss-hint">CD 4/4<br>ATK 1</div>
+        <div class="run-copy">
+          <strong id="stage-label">第 1 關 / 5</strong>
+          <span id="phase-label">小怪戰</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="battlefield">
+      <div class="monster-panel" aria-label="怪物">
+        <img class="battle-hero" src="assets/hero-full.svg" alt="" aria-hidden="true">
+        <div class="monster-stage">
+          <div id="damage-pop" class="damage-pop"></div>
+          <div id="damage-breakdown" class="damage-breakdown" aria-hidden="true"></div>
+          <div id="slash-effect" class="slash-effect" aria-hidden="true"></div>
+          <img id="monster" class="sprite monster" src="assets/monster-slime.svg" alt="" aria-hidden="true">
+        </div>
+        <div class="hp-wrap">
+          <div class="hp-label">
+            <span id="monster-name">暗影史萊姆王</span>
+            <strong><span id="monster-hp">450</span>/<span id="monster-max-hp">450</span></strong>
+          </div>
+          <div class="hp-bar" aria-hidden="true"><span id="hp-fill"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hero-strip" aria-label="勇者狀態">
+      <div class="player-vitals" aria-label="玩家生命">
+        <div class="player-hp-head">
+          <strong>HP</strong>
+          <span><b id="player-hp">10</b>/10</span>
+        </div>
+        <div class="player-hp-bar" aria-hidden="true"><span id="player-hp-fill"></span></div>
+        <div class="heart-meter">
+          <span class="heart-icon" aria-label="心能量"></span>
+          <strong><b id="heart-count">0</b>/10</strong>
+        </div>
+      </div>
+      <div class="hero-copy">
+        <strong>勇者</strong>
+        <p id="battle-log">交換相鄰符石開始攻擊。累計消除 10 顆心回復 1 HP。</p>
+      </div>
+    </section>
+
+    <section class="board-area">
+      <div id="board" class="board" aria-label="三消棋盤"></div>
+      <div id="combo-burst" class="combo-burst" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <div id="choice-modal" class="choice-modal" aria-hidden="true">
+    <div class="choice-card">
+      <div id="choice-title" class="choice-title">STAGE CLEAR</div>
+      <p id="choice-copy">目前可領 0 金幣。</p>
+      <div class="choice-actions">
+        <button id="cash-out" type="button">Cash Out</button>
+        <button id="continue-run" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+  <div id="bet-modal" class="choice-modal show" aria-hidden="false">
+    <div class="choice-card bet-card">
+      <div class="choice-title">選擇 Bet</div>
+      <p id="bet-copy">每次消除會消耗 1 Bet，通關獎勵會依 Bet 倍數計算。</p>
+      <div class="bet-stepper" aria-label="Bet 調整">
+        <button id="bet-minus" type="button" aria-label="降低 Bet" onclick="decreaseBet()">-</button>
+        <div class="bet-value">
+          <strong><span id="bet-amount">10</span>$</strong>
+          <small>每步成本 <span id="bet-step-cost">10</span>$</small>
+        </div>
+        <button id="bet-plus" type="button" aria-label="提高 Bet" onclick="increaseBet()">+</button>
+      </div>
+      <div class="bet-preview">
+        <span>第一關成功 <strong id="bet-first-reward">40$</strong></span>
+        <span>五關全通 <strong id="bet-total-reward">1300$</strong></span>
+      </div>
+      <button id="bet-start" class="bet-start" type="button" onclick="startBetGame()">開始挑戰</button>
+    </div>
+  </div>
+  <div id="augment-modal" class="augment-modal" aria-hidden="true">
+    <div class="augment-card">
+      <div class="augment-title">選擇接關增幅</div>
+      <p id="augment-subtitle">選 1 個增幅，帶進下一關。</p>
+      <div id="augment-options" class="augment-options"></div>
+    </div>
+  </div>
+  <div id="big-win" class="big-win" aria-hidden="true"></div>
+  <div id="topup-modal" class="choice-modal" aria-hidden="true">
+    <div class="choice-card">
+      <div class="choice-title">金幣不足</div>
+      <p>金幣不足以支付下一步成本。</p>
+      <div class="choice-actions single">
+        <button id="topup-button" type="button">加值 1000$</button>
+      </div>
+    </div>
+  </div>
+  <div id="stage-clear-card" class="stage-clear-card" aria-hidden="true">
+    <strong>STAGE CLEAR</strong>
+    <span>選擇 Cash Out 或繼續挑戰</span>
+  </div>
+
+  <script src="game.js?v=combat-ui-1"></script>
+</body>
+</html>
