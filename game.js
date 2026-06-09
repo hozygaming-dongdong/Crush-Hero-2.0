@@ -487,7 +487,7 @@ async function resolveBoard(origin) {
     collapse();
     ensurePlayableBoard();
     render();
-    await sleep(180);
+    await sleep(chain === 1 ? 120 : 70);
     chain++;
   }
   if (comboEl) comboEl.textContent = "x1";
@@ -652,14 +652,18 @@ async function clearCells(cells, chain, label) {
   if (bonusCoins > 0) coins += bonusCoins;
   render(new Set(unique.keys()));
   showDamageBreakdown(sources.length ? sources : ["Base Damage"]);
-  await playAttackImpact(damage);
+  if (chain === 1) {
+    await playAttackImpact(damage);
+  } else {
+    playQuickDamageImpact(damage);
+  }
   await applyDamageSegment(damage, label, sources);
   const sourceText = sources.length ? ` 來源：${sources.join("、")}` : "";
   const heartText = heartsCleared ? `，心能量 +${heartsCleared}` : "";
   const healText = heartHeal ? `，回復 ${heartHeal} HP` : "";
   logEl.textContent = `${label}！消除 ${finalCells.length} 格，造成 ${damage} 傷害${heartText}${healText}${bonusCoins ? `，賞金 +${bonusCoins}` : ""}。${sourceText}`;
   playImpactCallout(chain, damage);
-  await sleep(120);
+  await sleep(chain === 1 ? 90 : 40);
   for (const cell of finalCells) board[cell.r][cell.c] = null;
   return damage;
 }
@@ -918,7 +922,7 @@ async function applyDamageSegment(damage, label, sources) {
   monsterEl.classList.add("hit");
   setTimeout(() => monsterEl.classList.remove("hit"), 180);
   updateHud();
-  await sleep(180);
+  await sleep(70);
 }
 
 async function playAttackImpact(damage) {
@@ -935,6 +939,15 @@ async function playAttackImpact(damage) {
   await sleep(170);
   playDamageImpactSound(damage);
   await sleep(90);
+}
+
+function playQuickDamageImpact(damage) {
+  const power = Math.min(1.55, 0.75 + damage / 1200);
+  slashEffectEl.style.setProperty("--slash-scale", power.toFixed(2));
+  slashEffectEl.classList.remove("show");
+  void slashEffectEl.offsetWidth;
+  slashEffectEl.classList.add("show");
+  playDamageImpactSound(damage);
 }
 
 async function advanceStage() {
