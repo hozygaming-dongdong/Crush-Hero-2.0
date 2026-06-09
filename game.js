@@ -82,6 +82,8 @@ const damagePopEl = document.getElementById("damage-pop");
 const damageBreakdownEl = document.getElementById("damage-breakdown");
 const turnDamageEl = document.getElementById("turn-damage");
 const turnDamageValueEl = document.getElementById("turn-damage-value");
+const turnDamageDetailEl = document.getElementById("turn-damage-detail");
+const turnDamageTagsEl = document.getElementById("turn-damage-tags");
 const hpPreviewFillEl = document.getElementById("hp-preview-fill");
 const newRoundBtn = document.getElementById("new-round");
 const stageProgressEl = document.getElementById("stage-progress");
@@ -658,7 +660,7 @@ async function clearCells(cells, chain, label) {
   if (bonusCoins > 0) coins += bonusCoins;
   render(new Set(unique.keys()));
   showDamageBreakdown(sources.length ? sources : ["Base Damage"]);
-  addTurnDamage(damage, sources);
+  addTurnDamage(damage, sources, label);
   const sourceText = sources.length ? ` 來源：${sources.join("、")}` : "";
   const heartText = heartsCleared ? `，心能量 +${heartsCleared}` : "";
   const healText = heartHeal ? `，回復 ${heartHeal} HP` : "";
@@ -735,18 +737,22 @@ function resetTurnDamage() {
   turnDamageTotal = 0;
   turnDamageSources = [];
   turnDamageValueEl.textContent = "0";
+  turnDamageDetailEl.textContent = "等待消除";
+  turnDamageTagsEl.innerHTML = "";
   turnDamageEl.classList.remove("active", "resolved");
   turnDamageEl.setAttribute("aria-hidden", "true");
   hpPreviewFillEl.classList.remove("show");
 }
 
-function addTurnDamage(damage, sources = []) {
+function addTurnDamage(damage, sources = [], label = "命中") {
   if (damage <= 0) return;
   turnDamageTotal += damage;
   for (const source of sources) {
     if (!turnDamageSources.includes(source)) turnDamageSources.push(source);
   }
   turnDamageValueEl.textContent = `-${turnDamageTotal}`;
+  turnDamageDetailEl.textContent = `${label} +${damage}，累計 ${turnDamageTotal}`;
+  turnDamageTagsEl.innerHTML = turnDamageSources.slice(0, 5).map(source => `<span>${source}</span>`).join("");
   turnDamageEl.classList.add("active");
   turnDamageEl.setAttribute("aria-hidden", "false");
 }
@@ -762,6 +768,7 @@ function showTurnDamageSummary(damage) {
   damageBreakdownEl.classList.add("show");
   damageBreakdownEl.setAttribute("aria-hidden", "false");
   turnDamageEl.classList.add("resolved");
+  turnDamageDetailEl.textContent = `結算完成，準備攻擊 -${damage}`;
   window.setTimeout(() => turnDamageEl.classList.remove("resolved"), 520);
   setDamageBreakdownTimeout(1450);
 }

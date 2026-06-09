@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hero Crush</title>
-  <link rel="stylesheet" href="style.css?v=damage-clarity-1">
+  <link rel="stylesheet" href="style.css?v=floating-damage-1">
 </head>
 <body>
   <main class="game-shell">
@@ -61,10 +61,6 @@
         </div>
       </div>
       <div class="hero-copy">
-        <div id="turn-damage" class="turn-damage" aria-hidden="true">
-          <span>本回合傷害</span>
-          <strong id="turn-damage-value">0</strong>
-        </div>
         <strong>勇者</strong>
         <p id="battle-log">交換相鄰符石開始攻擊。累計消除 10 顆心回復 1 HP。</p>
       </div>
@@ -74,6 +70,15 @@
       <div id="board" class="board" aria-label="三消棋盤"></div>
       <div id="combo-burst" class="combo-burst" aria-hidden="true"></div>
     </section>
+
+    <div id="turn-damage" class="turn-damage" aria-hidden="true">
+      <div class="turn-damage-head">
+        <span>本回合傷害</span>
+        <strong id="turn-damage-value">0</strong>
+      </div>
+      <div id="turn-damage-detail" class="turn-damage-detail">等待消除</div>
+      <div id="turn-damage-tags" class="turn-damage-tags"></div>
+    </div>
   </main>
 
   <div id="choice-modal" class="choice-modal" aria-hidden="true">
@@ -128,6 +133,6 @@
     <span>選擇 Cash Out 或繼續挑戰</span>
   </div>
 
-  <script src="game.js?v=damage-clarity-1"></script>
+  <script src="game.js?v=floating-damage-1"></script>
 </body>
 </html>
