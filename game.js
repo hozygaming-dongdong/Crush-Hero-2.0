@@ -80,6 +80,9 @@ const battleHeroEl = document.querySelector(".battle-hero");
 const monsterNameEl = document.getElementById("monster-name");
 const damagePopEl = document.getElementById("damage-pop");
 const damageBreakdownEl = document.getElementById("damage-breakdown");
+const turnDamageEl = document.getElementById("turn-damage");
+const turnDamageValueEl = document.getElementById("turn-damage-value");
+const hpPreviewFillEl = document.getElementById("hp-preview-fill");
 const newRoundBtn = document.getElementById("new-round");
 const stageProgressEl = document.getElementById("stage-progress");
 const stageLabelEl = document.getElementById("stage-label");
@@ -128,6 +131,9 @@ let awaitingChoice = false;
 let awaitingAugment = false;
 let awaitingBet = true;
 let runEnded = false;
+let turnDamageTotal = 0;
+let turnDamageSources = [];
+let damageBreakdownTimer = null;
 let audioStarted = false;
 let audioCtx = null;
 let musicTimer = null;
@@ -290,6 +296,7 @@ async function tryMove(a, b) {
 
   coins = Math.max(0, coins - currentBet);
   movesAgainstMonster++;
+  resetTurnDamage();
   render();
   await sleep(120);
 
@@ -308,6 +315,7 @@ async function tryMove(a, b) {
     await sleep(180);
   }
   totalDamage += await resolveBoard(a);
+  showTurnDamageSummary(totalDamage);
   const defeated = await hitMonster(totalDamage);
   if (!defeated && !runEnded) await processMonsterCooldown();
   busy = false;
@@ -650,6 +658,7 @@ async function clearCells(cells, chain, label) {
   if (bonusCoins > 0) coins += bonusCoins;
   render(new Set(unique.keys()));
   showDamageBreakdown(sources.length ? sources : ["Base Damage"]);
+  addTurnDamage(damage, sources);
   const sourceText = sources.length ? ` 來源：${sources.join("、")}` : "";
   const heartText = heartsCleared ? `，心能量 +${heartsCleared}` : "";
   const healText = heartHeal ? `，回復 ${heartHeal} HP` : "";
@@ -722,17 +731,58 @@ function getDamageSourceLabels(context) {
   return [...new Set(labels)].slice(0, 4);
 }
 
-function showDamageBreakdown(labels) {
-  if (!labels.length) return;
-  damageBreakdownEl.innerHTML = labels.map(label => `<span>${label}</span>`).join("");
+function resetTurnDamage() {
+  turnDamageTotal = 0;
+  turnDamageSources = [];
+  turnDamageValueEl.textContent = "0";
+  turnDamageEl.classList.remove("active", "resolved");
+  turnDamageEl.setAttribute("aria-hidden", "true");
+  hpPreviewFillEl.classList.remove("show");
+}
+
+function addTurnDamage(damage, sources = []) {
+  if (damage <= 0) return;
+  turnDamageTotal += damage;
+  for (const source of sources) {
+    if (!turnDamageSources.includes(source)) turnDamageSources.push(source);
+  }
+  turnDamageValueEl.textContent = `-${turnDamageTotal}`;
+  turnDamageEl.classList.add("active");
+  turnDamageEl.setAttribute("aria-hidden", "false");
+}
+
+function showTurnDamageSummary(damage) {
+  if (damage <= 0) return;
+  const labels = turnDamageSources.slice(0, 3);
+  const chips = labels.map(label => `<span>${label}</span>`).join("");
+  damageBreakdownEl.innerHTML = `<strong>本回合 -${damage}</strong>${chips}`;
   damageBreakdownEl.classList.remove("show");
+  damageBreakdownEl.classList.add("summary");
   void damageBreakdownEl.offsetWidth;
   damageBreakdownEl.classList.add("show");
   damageBreakdownEl.setAttribute("aria-hidden", "false");
-  window.setTimeout(() => {
-    damageBreakdownEl.classList.remove("show");
+  turnDamageEl.classList.add("resolved");
+  window.setTimeout(() => turnDamageEl.classList.remove("resolved"), 520);
+  setDamageBreakdownTimeout(1450);
+}
+
+function setDamageBreakdownTimeout(duration) {
+  if (damageBreakdownTimer) window.clearTimeout(damageBreakdownTimer);
+  damageBreakdownTimer = window.setTimeout(() => {
+    damageBreakdownEl.classList.remove("show", "summary");
     damageBreakdownEl.setAttribute("aria-hidden", "true");
-  }, 1300);
+    damageBreakdownTimer = null;
+  }, duration);
+}
+
+function showDamageBreakdown(labels) {
+  if (!labels.length) return;
+  damageBreakdownEl.innerHTML = labels.map(label => `<span>${label}</span>`).join("");
+  damageBreakdownEl.classList.remove("show", "summary");
+  void damageBreakdownEl.offsetWidth;
+  damageBreakdownEl.classList.add("show");
+  damageBreakdownEl.setAttribute("aria-hidden", "false");
+  setDamageBreakdownTimeout(1300);
 }
 
 function showComboBurst(chain) {
@@ -857,6 +907,7 @@ function range(start, end) {
 
 async function hitMonster(damage) {
   if (damage <= 0) return;
+  showHpDamagePreview(damage);
   await playAttackImpact(damage);
   monsterHp -= damage;
   damagePopEl.textContent = `-${damage}`;
@@ -873,6 +924,22 @@ async function hitMonster(damage) {
   }
   updateHud();
   return false;
+}
+
+function showHpDamagePreview(damage) {
+  const before = Math.max(0, monsterHp);
+  if (damage <= 0 || before <= 0) return;
+  const after = Math.max(0, before - damage);
+  const beforePct = Math.max(0, Math.min(100, (before / monsterMaxHp) * 100));
+  const afterPct = Math.max(0, Math.min(100, (after / monsterMaxHp) * 100));
+  const widthPct = Math.max(0, beforePct - afterPct);
+  if (widthPct <= 0) return;
+  hpPreviewFillEl.style.setProperty("--hp-preview-left", `${afterPct}%`);
+  hpPreviewFillEl.style.setProperty("--hp-preview-width", `${widthPct}%`);
+  hpPreviewFillEl.classList.remove("show");
+  void hpPreviewFillEl.offsetWidth;
+  hpPreviewFillEl.classList.add("show");
+  window.setTimeout(() => hpPreviewFillEl.classList.remove("show"), 650);
 }
 
 async function playAttackImpact(damage) {

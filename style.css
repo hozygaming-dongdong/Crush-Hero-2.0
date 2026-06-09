@@ -661,6 +661,25 @@ p {
   animation: breakdownPop 1.3s ease-out;
 }
 
+.damage-breakdown.summary {
+  top: 30px;
+  display: grid;
+  justify-items: center;
+  width: min(280px, 86%);
+}
+
+.damage-breakdown.summary strong {
+  padding: 4px 12px;
+  border: 3px solid rgba(66, 23, 10, .9);
+  border-radius: 999px;
+  background: linear-gradient(#fff6a8, #ffb13d 55%, #ef5a2f);
+  color: #351204;
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+  box-shadow: 0 6px 14px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.45);
+}
+
 .slash-effect {
   position: absolute;
   left: 50%;
@@ -713,6 +732,8 @@ p {
 }
 
 .hp-bar {
+  position: relative;
+  overflow: hidden;
   height: 19px;
   padding: 3px;
   border: 2px solid #120b08;
@@ -722,12 +743,30 @@ p {
 }
 
 .hp-bar span {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  z-index: 2;
   display: block;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 6px);
   border-radius: 8px;
   background: linear-gradient(90deg, #f64e4e, #ffb13d 70%, #fff078);
   transition: width .25s ease;
+}
+
+.hp-bar .hp-preview-fill {
+  z-index: 3;
+  left: var(--hp-preview-left, 100%);
+  width: var(--hp-preview-width, 0%);
+  background: linear-gradient(90deg, rgba(255,255,255,.92), rgba(255, 58, 44, .92));
+  opacity: 0;
+  transition: opacity .18s ease;
+  box-shadow: 0 0 10px rgba(255, 72, 56, .75);
+}
+
+.hp-bar .hp-preview-fill.show {
+  animation: hpPreviewPulse .64s ease-out;
 }
 
 .hero-strip {
@@ -879,12 +918,62 @@ p {
   min-width: 0;
 }
 
+.turn-damage {
+  float: right;
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border: 2px solid rgba(84, 46, 18, .92);
+  border-radius: 8px;
+  background: linear-gradient(#3b2817, #1c130d);
+  color: #ffd66b;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .52;
+  box-shadow: inset 0 0 0 1px rgba(255, 217, 112, .18);
+  transition: opacity .18s ease, transform .18s ease, background .18s ease;
+}
+
+.turn-damage.active {
+  opacity: 1;
+  transform: translateY(-1px);
+  background: linear-gradient(#654019, #27170b);
+}
+
+.turn-damage.resolved {
+  animation: turnDamageResolve .52s ease-out;
+}
+
+.turn-damage span {
+  color: #d8bd86;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.turn-damage strong {
+  margin: 0;
+  color: #fff2a4;
+  font-size: 14px;
+  text-shadow: 0 0 8px rgba(255, 214, 91, .46);
+}
+
 .hero-copy strong {
   display: inline;
   color: #fff6b8;
   font-size: 12px;
   line-height: 1.1;
   margin-right: 7px;
+}
+
+.hero-copy .turn-damage strong {
+  margin: 0;
+  color: #fff2a4;
+  font-size: 14px;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 214, 91, .46);
 }
 
 .hero-copy p {
@@ -2098,6 +2187,22 @@ p {
   }
 }
 
+@keyframes hpPreviewPulse {
+  0% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+  18%,
+  72% {
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
 @keyframes breakdownPop {
   0% {
     opacity: 0;
@@ -2114,6 +2219,18 @@ p {
   100% {
     opacity: 0;
     transform: translate(-50%, -14px) scale(.96);
+  }
+}
+
+@keyframes turnDamageResolve {
+  0% {
+    transform: translateY(-1px) scale(1);
+  }
+  45% {
+    transform: translateY(-2px) scale(1.08);
+  }
+  100% {
+    transform: translateY(-1px) scale(1);
   }
 }
 
