@@ -79,7 +79,6 @@ const monsterEl = document.getElementById("monster");
 const battleHeroEl = document.querySelector(".battle-hero");
 const monsterNameEl = document.getElementById("monster-name");
 const damagePopEl = document.getElementById("damage-pop");
-const damageFeedEl = document.getElementById("damage-feed");
 const damageBreakdownEl = document.getElementById("damage-breakdown");
 const newRoundBtn = document.getElementById("new-round");
 const stageProgressEl = document.getElementById("stage-progress");
@@ -291,7 +290,6 @@ async function tryMove(a, b) {
 
   coins = Math.max(0, coins - currentBet);
   movesAgainstMonster++;
-  resetDamageFeed();
   render();
   await sleep(120);
 
@@ -310,7 +308,7 @@ async function tryMove(a, b) {
     await sleep(180);
   }
   totalDamage += await resolveBoard(a);
-  const defeated = await finalizeMonsterDamage(totalDamage);
+  const defeated = await hitMonster(totalDamage);
   if (!defeated && !runEnded) await processMonsterCooldown();
   busy = false;
   render();
@@ -487,7 +485,7 @@ async function resolveBoard(origin) {
     collapse();
     ensurePlayableBoard();
     render();
-    await sleep(chain === 1 ? 120 : 70);
+    await sleep(180);
     chain++;
   }
   if (comboEl) comboEl.textContent = "x1";
@@ -652,18 +650,12 @@ async function clearCells(cells, chain, label) {
   if (bonusCoins > 0) coins += bonusCoins;
   render(new Set(unique.keys()));
   showDamageBreakdown(sources.length ? sources : ["Base Damage"]);
-  if (chain === 1) {
-    await playAttackImpact(damage);
-  } else {
-    playQuickDamageImpact(damage);
-  }
-  await applyDamageSegment(damage, label, sources);
   const sourceText = sources.length ? ` 來源：${sources.join("、")}` : "";
   const heartText = heartsCleared ? `，心能量 +${heartsCleared}` : "";
   const healText = heartHeal ? `，回復 ${heartHeal} HP` : "";
   logEl.textContent = `${label}！消除 ${finalCells.length} 格，造成 ${damage} 傷害${heartText}${healText}${bonusCoins ? `，賞金 +${bonusCoins}` : ""}。${sourceText}`;
   playImpactCallout(chain, damage);
-  await sleep(chain === 1 ? 90 : 40);
+  await sleep(260);
   for (const cell of finalCells) board[cell.r][cell.c] = null;
   return damage;
 }
@@ -741,41 +733,6 @@ function showDamageBreakdown(labels) {
     damageBreakdownEl.classList.remove("show");
     damageBreakdownEl.setAttribute("aria-hidden", "true");
   }, 1300);
-}
-
-function resetDamageFeed() {
-  damageFeedEl.innerHTML = "";
-  damageFeedEl.classList.remove("show");
-  damageFeedEl.setAttribute("aria-hidden", "true");
-}
-
-function showDamageFeedItem(label, damage, sources = []) {
-  damageFeedEl.classList.add("show");
-  damageFeedEl.setAttribute("aria-hidden", "false");
-  const item = document.createElement("div");
-  item.className = "damage-feed-item";
-  const tags = sources.slice(0, 3).map(source => `<small>${source}</small>`).join("");
-  item.innerHTML = `<strong>${label}</strong><b>-${damage}</b>${tags ? `<span>${tags}</span>` : ""}`;
-  damageFeedEl.prepend(item);
-  while (damageFeedEl.children.length > 4) damageFeedEl.lastElementChild.remove();
-  window.setTimeout(() => {
-    item.classList.add("fade");
-    window.setTimeout(() => {
-      item.remove();
-      if (damageFeedEl.children.length === 0) {
-        damageFeedEl.classList.remove("show");
-        damageFeedEl.setAttribute("aria-hidden", "true");
-      }
-    }, 260);
-  }, label === "TOTAL" ? 1500 : 1150);
-}
-
-function showTotalDamage(damage) {
-  damagePopEl.textContent = `TOTAL -${damage}`;
-  damagePopEl.classList.remove("show", "total");
-  void damagePopEl.offsetWidth;
-  damagePopEl.classList.add("show", "total");
-  showDamageFeedItem("TOTAL", damage, []);
 }
 
 function showComboBurst(chain) {
@@ -898,10 +855,17 @@ function range(start, end) {
   return Array.from({ length: end - start }, (_, index) => start + index);
 }
 
-async function finalizeMonsterDamage(damage) {
+async function hitMonster(damage) {
   if (damage <= 0) return;
-  showTotalDamage(damage);
-  await sleep(220);
+  await playAttackImpact(damage);
+  monsterHp -= damage;
+  damagePopEl.textContent = `-${damage}`;
+  damagePopEl.classList.remove("show");
+  void damagePopEl.offsetWidth;
+  damagePopEl.classList.add("show");
+  monsterEl.classList.add("hit");
+  setTimeout(() => monsterEl.classList.remove("hit"), 180);
+
   if (monsterHp <= 0) {
     await advanceStage();
     updateHud();
@@ -909,20 +873,6 @@ async function finalizeMonsterDamage(damage) {
   }
   updateHud();
   return false;
-}
-
-async function applyDamageSegment(damage, label, sources) {
-  if (damage <= 0) return;
-  monsterHp -= damage;
-  damagePopEl.textContent = `${label} -${damage}`;
-  damagePopEl.classList.remove("show");
-  void damagePopEl.offsetWidth;
-  damagePopEl.classList.add("show");
-  showDamageFeedItem(label, damage, sources);
-  monsterEl.classList.add("hit");
-  setTimeout(() => monsterEl.classList.remove("hit"), 180);
-  updateHud();
-  await sleep(70);
 }
 
 async function playAttackImpact(damage) {
@@ -939,15 +889,6 @@ async function playAttackImpact(damage) {
   await sleep(170);
   playDamageImpactSound(damage);
   await sleep(90);
-}
-
-function playQuickDamageImpact(damage) {
-  const power = Math.min(1.55, 0.75 + damage / 1200);
-  slashEffectEl.style.setProperty("--slash-scale", power.toFixed(2));
-  slashEffectEl.classList.remove("show");
-  void slashEffectEl.offsetWidth;
-  slashEffectEl.classList.add("show");
-  playDamageImpactSound(damage);
 }
 
 async function advanceStage() {
